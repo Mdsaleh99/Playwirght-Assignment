@@ -7,23 +7,31 @@ test("Automation Exercise - Simple Version", async ({ page }) => {
     page.getByRole("heading", { name: "AutomationExercise" })
   ).toBeVisible();
 
-  await page.waitForSelector(".productinfo", { timeout: 10000 });
+  // await page.getByRole("link", { name: "Add to cart" }).first().hover();
 
-  await page.locator(".productinfo").first().hover();
+  // await page.locator(".productinfo").first().hover();
 
-  await page.locator(".productinfo .add-to-cart").first().click();
+  const firstProduct = page.locator(".productinfo").first();
+  await firstProduct.hover();
+  await firstProduct.getByText("Add to cart").click();
 
-  await page.waitForSelector(".modal-content", { timeout: 5000 });
-  await page.locator('.modal-content a[href="/view_cart"]').click();
+   const modal = page.locator(".modal-content");
+  //  await expect(modal).toBeVisible({ timeout: 5000 });
+  modal.getByRole("link", { name: "View Cart" }).click()
 
   await page.waitForURL("**/view_cart");
   await expect(page.locator("#cart_info_table")).toBeVisible();
 
-  await page.locator(".btn.btn-default.check_out").click();
-  await page.waitForTimeout(1000);
-  await page.locator('.text-center a[href="/login"]').click();
+  // await page.locator(".btn.btn-default.check_out").click();
+  const checkoutBtn = page.getByText("Proceed To Checkout");
+  await expect(checkoutBtn).toBeVisible();
+  await checkoutBtn.click();
 
-  // STEP 5: Login if needed
+  await page.waitForTimeout(1000);
+  // await page.locator('.text-center a[href="/login"]').click();
+  await page.getByText("Register / Login").last().click();
+  
+
   const currentUrl = page.url();
 
   if (currentUrl.includes("/login")) {
@@ -33,11 +41,13 @@ test("Automation Exercise - Simple Version", async ({ page }) => {
     await page.getByPlaceholder("Password").fill("GFXbtcVV@57kPSH");
     await page.getByRole("button", { name: "login" }).click();
 
-    await page.waitForURL("**/", { timeout: 10000 });
-
+    await expect(page).toHaveURL("https://automationexercise.com/");
     await page.goto("https://automationexercise.com/view_cart");
 
-    await page.locator(".btn.btn-default.check_out").click();
+    // await page.locator(".btn.btn-default.check_out").click();
+    const checkoutBtn = page.getByText("Proceed To Checkout");
+    await expect(checkoutBtn).toBeVisible();
+    await checkoutBtn.click();
   }
 
   await page.waitForURL("**/checkout", { timeout: 10000 });
@@ -46,18 +56,21 @@ test("Automation Exercise - Simple Version", async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  const placeOrderBtn = page.locator('a[href="/payment"]');
-  await placeOrderBtn.waitFor({ state: "visible", timeout: 10000 });
-  await placeOrderBtn.click();
+  // const placeOrderBtn = page.locator('a[href="/payment"]');
+  // await placeOrderBtn.waitFor({ state: "visible", timeout: 10000 });
+  // await placeOrderBtn.click();
 
+   const placeOrderBtn = page.getByText('Place Order');
+   await placeOrderBtn.waitFor({ state: "visible", timeout: 10000 });
+   await placeOrderBtn.click();
 
   await page.waitForURL("**/payment", { timeout: 10000 });
 
   await page.fill('input[name="name_on_card"]', "Playwright Tester");
   await page.fill('input[name="card_number"]', "4111111111111111");
-  await page.fill('input[name="cvc"]', "123");
-  await page.fill('input[name="expiry_month"]', "12");
-  await page.fill('input[name="expiry_year"]', "2028");
+  await page.getByPlaceholder("ex. 311").fill("123");
+  await page.getByPlaceholder("MM").fill("12");
+  await page.getByPlaceholder("YYYY").fill("2028");
 
 
   await page.screenshot({
